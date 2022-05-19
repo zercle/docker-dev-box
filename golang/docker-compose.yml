@@ -1,0 +1,20 @@
+services:
+  # docker-compose run --service-ports --rm app go run main.go
+  app:
+    image: golang:alpine
+    volumes:
+      - .:/src/app
+    working_dir: /src/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=(Host(`localhost`) && PathPrefix(`/api/`))"
+      - "traefik.http.routers.app.entrypoints=web-80"
+      - "traefik.http.routers.app.service=app"
+      - "traefik.http.services.app.loadbalancer.server.port=8080"
+      # - "traefik.http.services.app.loadbalancer.server.port=8443"
+      # - "traefik.http.services.app.loadbalancer.server.scheme=https"
+
+networks:
+  default:
+    external: true
+    name: docker_dev_net
