@@ -1,0 +1,119 @@
+# Example MariaDB config file for small systems.
+#
+# This is for a medium system with memory of 1-2GB where the system runs mainly
+# MariaDB.
+# Maintainer Kawin Viriyaprasopsook <kawin.vir@zercle.tech>
+[client]
+port = 3306
+socket = /var/run/mysqld/mysql.sock
+default-character-set = utf8mb4
+
+[mysqld]
+#innodb_force_recovery = 2
+datadir = /var/lib/mysql/
+ignore_db_dirs = 'lost+found'
+port = 3306
+socket = /var/run/mysqld/mysql.sock
+pid-file = /var/run/mysqld/mysqld.pid
+performance_schema = ON
+collation-server = utf8mb4_unicode_ci
+init-connect = 'SET NAMES utf8mb4'
+character-set-server = utf8mb4
+default-time-zone = '+07:00'
+
+# Init tune
+binlog_cache_size = 64K
+thread_stack = 256K
+max_heap_table_size = 64M
+default_storage_engine = InnoDB
+performance_schema_max_table_instances = 400
+table_definition_cache = 400
+skip-external-locking
+max_allowed_packet = 100G
+sort_buffer_size = 768K
+net_buffer_length = 4K
+read_buffer_size = 768K
+read_rnd_buffer_size = 512K
+myisam_sort_buffer_size = 16M
+sql-mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+
+#skip-name-resolve
+max_connections = 100
+max_connect_errors = 100
+open_files_limit = 65535
+
+# 1 per 8MB RAM
+table_open_cache = 128
+
+# 1MB per 1GB RAM
+join_buffer_size = 1024K
+
+# 64MB per 1GB RAM
+query_cache_type = 1
+query_cache_size = 64M
+
+# 12*max BLOB size
+max_allowed_packet = 100G
+
+# 128MB per 1GB RAM
+key_buffer_size = 128M
+
+# MariaDB 10.2+ let's auto
+# MariaDB 5.5-10.1 (2-2.5)*CPU cores
+thread_cache_size = 64
+
+# 64MB per 1GB RAM
+tmp_table_size = 64M
+
+open_files_limit = 65535
+
+#log-bin=mysql-bin
+#binlog_format=mixed
+server-id = 1
+expire_logs_days = 10
+slow_query_log=1
+slow-query-log-file=/var/log/mysql/mysql-slow.log
+long_query_time=3
+#log_queries_not_using_indexes=on
+
+innodb_data_file_path = ibdata1:10M:autoextend
+
+# 25% of RAM
+innodb_buffer_pool_size = 256M
+innodb_log_buffer_size = 32M
+
+# 25% of innodb_buffer_pool_size
+# Caution large innodb_log_file_size will slow down recovery process
+innodb_log_file_size = 64M
+
+# lazy flush log
+# 0 for normal storage
+# 1 Default
+# 2 for Galera, storage with battery backup
+#innodb_flush_log_at_trx_commit = 2
+
+# 50-80% of system IOPs
+# fio --randrepeat=1 --ioengine=libaio --direct=1 --gtod_reduce=1 --name=test-io --filename=io.test --bs=4k --iodepth=64 --size=4G --readwrite=randrw --rwmixread=75
+#innodb_io_capacity = 2000
+
+innodb_lock_wait_timeout = 50
+innodb_max_dirty_pages_pct = 90
+innodb_read_io_threads = 4
+innodb_write_io_threads = 4
+
+[mysqldump]
+quick
+max_allowed_packet = 500M
+
+[mysql]
+no-auto-rehash
+default-character-set=utf8mb4
+
+[myisamchk]
+key_buffer_size = 64M
+sort_buffer_size = 1M
+read_buffer = 2M
+write_buffer = 2M
+
+[mysqlhotcopy]
+interactive-timeout

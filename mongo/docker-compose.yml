@@ -1,0 +1,50 @@
+services:
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    hostname: mongo
+    restart: on-failure
+    volumes:
+      - type: volume
+        source: mongo_data
+        target: /data/db
+      - type: bind
+        source: ./conf.d
+        target: /etc/mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: TestMongo
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.mongo.rule=(HostSNI(`*`))"
+      - "traefik.tcp.routers.mongo.entrypoints=mongo"
+      - "traefik.tcp.routers.mongo.service=mongo"
+      - "traefik.tcp.services.mongo.loadbalancer.server.port=27017"
+
+  mongo-express:
+    depends_on:
+      - mongo
+    image: mongo-express
+    container_name: mongo-express
+    hostname: mongo-express
+    restart: on-failure
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: TestMongo
+      ME_CONFIG_MONGODB_URL: mongodb://root:TestMongo@mongo:27017/
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mongo-express.rule=(Host(`localhost`))"
+      - "traefik.http.routers.mongo-express.entrypoints=web-8082"
+      - "traefik.http.routers.mongo-express.service=mongo-express"
+      - "traefik.http.services.mongo-express.loadbalancer.server.port=8081"
+
+volumes:
+  mongo_data:
+
+
+networks:
+  default:
+    external: true
+    name: docker_dev_net

@@ -1,0 +1,56 @@
+services:
+
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    hostname: mariadb
+    restart: on-failure
+    volumes:
+      - type: volume
+        source: mariadb_data
+        target: /var/lib/mysql
+      - type: bind
+        source: ./conf.d
+        target: /etc/mysql/conf.d
+      - type: bind
+        source: /var/run/mysqld/
+        target: /var/run/mysqld/
+    environment:
+      MARIADB_ROOT_PASSWORD: TestMariadb
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.mariadb.rule=(HostSNI(`*`))"
+      - "traefik.tcp.routers.mariadb.entrypoints=mysql"
+      - "traefik.tcp.routers.mariadb.service=mariadb"
+      - "traefik.tcp.services.mariadb.loadbalancer.server.port=3306"
+
+  adminer:
+    depends_on:
+      - mariadb
+    image: adminer
+    container_name: adminer
+    hostname: adminer
+    restart: on-failure
+    volumes:
+      - type: bind
+        source: /var/run/mysqld/
+        target: /var/run/mysqld/
+        read_only: true
+    environment:
+      ADMINER_PLUGINS: 'tables-filter tinymce'
+      ADMINER_DESIGN: 'pepa-linha'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer.rule=(Host(`localhost`))"
+      - "traefik.http.routers.adminer.entrypoints=web-8081"
+      - "traefik.http.routers.adminer.service=adminer"
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
+
+volumes:
+  mariadb_data:
+
+
+networks:
+  default:
+    external: true
+    name: docker_dev_net

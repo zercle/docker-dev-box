@@ -1,0 +1,55 @@
+services:
+
+  traefik:
+    container_name: traefik
+    image: traefik
+    restart: on-failure
+    command:
+      - --api.insecure=true
+      - --entrypoints.web-80.address=:80
+      - --entrypoints.web-443.address=:443
+      - --entrypoints.web-8081.address=:8081
+      - --entrypoints.web-8082.address=:8082
+      - --entrypoints.web-8443.address=:8443
+      - --entrypoints.mysql.address=:3306
+      - --entrypoints.redis.address=:6379
+      - --entrypoints.mongo.address=:27017
+      - --providers.docker
+      - --providers.docker.watch=true
+      - --providers.docker.network=docker_dev_net
+      - --providers.docker.exposedbydefault=false
+      - --serversTransport.insecureSkipVerify=true
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+      - type: bind
+        source: ./conf.d
+        target: /etc/traefik/conf.d
+    ports:
+      # web-80
+      - 80:80
+      # web-443
+      - 443:443
+      # web-8080
+      # traefik web ui
+      - 8080:8080
+      # web-8081
+      # mariadb web ui
+      - 8081:8081
+      # web-8081
+      # mongo web ui
+      - 8082:8082
+      # web-8443
+      - 8443:8443
+      # mysql
+      - 3306:3306
+      # redis
+      - 6379:6379
+      # mongo
+      - 27017:27017
+
+networks:
+  default:
+    name: docker_dev_net
